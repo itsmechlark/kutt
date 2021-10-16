@@ -39,7 +39,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Log into registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Copy custom static files
         run: cp -r kube/overlays/${PROJECT_NAME}/static/* static/
@@ -47,8 +47,8 @@ jobs:
       - name: Build image
         run: |-
           docker build \
-            --tag "docker.pkg.github.com/${{ github.repository }}/$PROJECT_NAME:$GITHUB_SHA" \
-            --tag "docker.pkg.github.com/${{ github.repository }}/$PROJECT_NAME:latest" \
+            --tag "ghcr.io/${{ github.repository }}/$PROJECT_NAME:$GITHUB_SHA" \
+            --tag "ghcr.io/${{ github.repository }}/$PROJECT_NAME:latest" \
             --build-arg GITHUB_SHA="$GITHUB_SHA" \
             --build-arg GITHUB_REF="$GITHUB_REF" \
             .
@@ -56,8 +56,8 @@ jobs:
       # Push the Docker image to Github Docker Registry
       - name: Publish
         run: |-
-          docker push "docker.pkg.github.com/${{ github.repository }}/$PROJECT_NAME:$GITHUB_SHA"
-          docker push "docker.pkg.github.com/${{ github.repository }}/$PROJECT_NAME:latest"
+          docker push "ghcr.io/${{ github.repository }}/$PROJECT_NAME:$GITHUB_SHA"
+          docker push "ghcr.io/${{ github.repository }}/$PROJECT_NAME:latest"
       
       # Download and Install DigitalOcean CLI
       - name: Install DigitalOcean CLI
@@ -95,7 +95,7 @@ jobs:
         run: |-
           cd ./kube/overlays/${PROJECT_NAME}/
           kustomize edit add annotation com.itsmechlark.kutt/release:$GITHUB_SHA
-          kustomize edit set image kutt/kutt=docker.pkg.github.com/${{ github.repository }}/$PROJECT_NAME:$GITHUB_SHA
+          kustomize edit set image kutt/kutt=ghcr.io/${{ github.repository }}/$PROJECT_NAME:$GITHUB_SHA
           kustomize build . | kubectl apply -f -
           kubectl rollout status deployment/${PROJECT_NAME}-kutt
 
